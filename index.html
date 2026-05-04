@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maritime Fire Agent Mastery</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      text-align: center; 
+      background: #121212; 
+      color: white; 
+      padding: 20px; 
+    }
+    .container { 
+      max-width: 650px; 
+      margin: auto; 
+      background: #1e1e1e; 
+      padding: 25px; 
+      border-radius: 15px; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    
+    h1 { color: #e94560; margin-bottom: 5px; }
+    #question-text {
+      font-size: 1.1rem;
+      color: #00d2ff;
+      margin-bottom: 20px;
+      min-height: 5em;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 10px;
+      line-height: 1.5;
+    }
+
+    .image-display-area {
+      width: 100%;
+      height: 380px; 
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: center; 
+      align-items: center;     
+      overflow: hidden;
+    }
+
+    img { 
+      max-width: 100%; 
+      max-height: 100%; 
+      object-fit: contain; 
+    }
+
+    input { 
+      width: 85%; 
+      padding: 12px; 
+      margin-bottom: 15px; 
+      border-radius: 5px; 
+      border: 1px solid #444; 
+      background: #222;
+      color: white;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    .controls { display: flex; justify-content: center; gap: 10px; }
+    button { 
+      padding: 12px 25px; 
+      cursor: pointer; 
+      border-radius: 8px; 
+      border: none; 
+      font-weight: bold; 
+      transition: 0.2s;
+    }
+    .btn-submit { background: #e94560; color: white; }
+    .btn-next { background: #444; color: white; }
+    button:hover { opacity: 0.8; }
+
+    #result { margin-top: 15px; font-weight: bold; min-height: 24px; }
+    #score-text { font-size: 0.9rem; color: #888; margin-bottom: 10px; }
+    
+    .reveal-area { 
+      font-size: 0.9rem; 
+      color: #ffaa00; 
+      margin-top: 10px; 
+      background: #2a2a2a;
+      padding: 15px;
+      border-radius: 8px;
+      display: none;
+      line-height: 1.6;
+    }
+    .instruction { font-size: 0.8rem; color: #666; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🚢 Fire Agent Mastery Quiz</h1>
+  <div id="score-text">Score: 0</div>
+  
+  <div id="question-text">
+    <div id="fuel-source">Loading...</div>
+  </div>
+
+  <div class="image-display-area">
+    <img id="quizImage" src="" alt="Fire Class Indicator">
+  </div>
+
+  <p class="instruction">List at least 2 agents separated by a comma (e.g. Water, Foam)</p>
+  <input type="text" id="answerInput" placeholder="Type agents here..." onkeydown="if(event.key==='Enter') submitAnswer()">
+  
+  <div class="controls">
+    <button class="btn-submit" onclick="submitAnswer()">Submit</button>
+    <button class="btn-next" onclick="nextQuestion()">Next</button>
+  </div>
+
+  <p id="result"></p>
+  <div id="revealArea" class="reveal-area"></div>
+</div>
+
+<script>
+const quizData = [
+  { 
+    class: "Class A (Ordinary Combustibles)",
+    fuel: "Wood, paper, cloth, plastic.",
+    // Correct answers are arrays of possible keywords
+    requiredAgents: ["water", "foam", "dry chemical"], 
+    fullList: "Water, Foam, and Monoammonium Phosphate (Dry Chemical) Fire Extinguishers",
+    image: "images/water.jpg"
+  },
+  { 
+    class: "Class B (Flammable Liquids)",
+    fuel: "Gasoline, oil, paint, grease.",
+    requiredAgents: ["foam", "carbon dioxide", "co2", "dry chemical"],
+    fullList: "Foam, Carbon Dioxide (CO2), and Dry Chemical (Purple K or ABC) Fire Extinguishers",
+    image: "images/foam.jpg"
+  },
+  { 
+    class: "Class C (Electrical Equipment)",
+    fuel: "Energized electrical equipment, appliances.",
+    requiredAgents: ["carbon dioxide", "co2", "dry chemical"],
+    fullList: "Carbon Dioxide (CO2) and Dry Chemical (ABC) Fire Extinguishers",
+    image: "images/co2.jpg"
+  },
+  { 
+    class: "Class D (Combustible Metals)",
+    fuel: "Magnesium, Titanium, Sodium.",
+    requiredAgents: ["sodium chloride", "graphite", "dry powder"],
+    fullList: "Specialized Dry Powder (Sodium chloride or graphite-based) Fire Extinguishers",
+    image: "images/powder.jpg"
+  },
+  { 
+    class: "Class K (Kitchen Fires)",
+    fuel: "Vegetable oils, animal oils, fats.",
+    requiredAgents: ["wet chemical"],
+    fullList: "Wet Chemical (Potassium Acetate-based) Fire Extinguishers",
+    image: "images/wet-chemical.jpg"
+  }
+];
+
+let current = 0;
+let score = 0;
+
+function loadQuestion() {
+  const currentData = quizData[current];
+  document.getElementById("quizImage").src = currentData.image;
+  document.getElementById("fuel-source").innerHTML = `<strong>${currentData.class}:</strong><br>${currentData.fuel}`;
+  
+  document.getElementById("revealArea").style.display = "none";
+  document.getElementById("answerInput").value = "";
+  document.getElementById("result").innerText = "";
+  document.getElementById("answerInput").focus();
+}
+
+function submitAnswer() {
+  const userInput = document.getElementById("answerInput").value.toLowerCase().trim();
+  const currentItem = quizData[current];
+  const resultElement = document.getElementById("result");
+  const revealElement = document.getElementById("revealArea");
+
+  // Split input by commas and clean up whitespace
+  const userAnswers = userInput.split(',').map(item => item.trim()).filter(item => item !== "");
+  
+  // Count how many valid agents the student found
+  let matchCount = 0;
+  currentItem.requiredAgents.forEach(agent => {
+    if (userAnswers.some(ua => ua.includes(agent))) {
+      matchCount++;
+    }
+  });
+
+  revealElement.style.display = "block";
+  revealElement.innerHTML = `<strong>Full List of Agents:</strong><br>${currentItem.fullList}`;
+
+  // Rule: Must provide at least 2 correct agents (unless only 1 exists, like Class K in some tables)
+  const threshold = currentItem.class.includes("Class K") || currentItem.class.includes("Class D") ? 1 : 2;
+
+  if (userAnswers.length >= threshold && matchCount >= threshold) {
+    resultElement.innerHTML = `<span style='color: #4ee44e;'>✅ Correct! You identified ${matchCount} valid agents.</span>`;
+    score++;
+  } else {
+    resultElement.innerHTML = `<span style='color: #ff4d4d;'>❌ Incorrect. Please provide at least ${threshold} agents from the list.</span>`;
+  }
+  
+  document.getElementById("score-text").innerText = "Score: " + score;
+}
+
+function nextQuestion() {
+  current++;
+  if (current >= quizData.length) {
+    alert("Quiz Finished! Final Score: " + score + "/" + quizData.length);
+    current = 0;
+    score = 0;
+    document.getElementById("score-text").innerText = "Score: 0";
+  }
+  loadQuestion();
+}
+
+loadQuestion();
+</script>
+
+</body>
+</html>
