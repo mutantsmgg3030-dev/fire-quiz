@@ -1,315 +1,752 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maritime Fire Agent Mastery</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body { 
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      text-align: center; 
-      background: #121212; 
-      color: white; 
-      padding: 20px; 
-    }
-    .container { 
-      max-width: 650px; 
-      margin: auto; 
-      background: #1e1e1e; 
-      padding: 25px; 
-      border-radius: 15px; 
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    
-    h1 { color: #e94560; margin-bottom: 5px; }
-    #question-text {
-      font-size: 1.1rem;
-      color: #00d2ff;
-      margin-bottom: 20px;
-      min-height: 5em;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 0 10px;
-      line-height: 1.5;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maritime Mastery Terminal</title>
+    <style>
+        :root { --cyan: #00e5ff; --red: #e94560; --bg: #0b1220; --panel: #111827; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; text-align: center; }
+        header { background: #0d1425; padding: 15px; border-bottom: 2px solid var(--cyan); display: flex; justify-content: center; gap: 10px; position: sticky; top: 0; z-index: 1000; }
+        .nav-btn { background: transparent; border: 1px solid var(--cyan); color: var(--cyan); padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.3s; }
+        .nav-btn.active { background: var(--cyan); color: var(--bg); }
+        .container { max-width: 900px; margin: 20px auto; padding: 20px; }
+        .view { display: none; }
+        .view.active { display: block; }
+        
+        .stats-dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .stat-box { background: var(--panel); padding: 15px; border-radius: 10px; border-bottom: 3px solid var(--cyan); }
+        .stat-box span { display: block; font-weight: bold; font-size: 1.2rem; }
+        .stat-label { font-size: 0.7rem; color: #888; text-transform: uppercase; }
+        .timer-container { width: 100%; background: #070b14; height: 10px; border-radius: 5px; margin-bottom: 20px; overflow: hidden; border: 1px solid #1f2937; }
+        #timer-bar { height: 100%; width: 100%; background: var(--cyan); transition: width 0.1s linear; }
 
-    .image-display-area {
-      width: 100%;
-      height: 300px; 
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: center; 
-      align-items: center;     
-      overflow: hidden;
-    }
-
-    img { max-width: 100%; max-height: 100%; object-fit: contain; }
-
-    input { 
-      width: 85%; padding: 12px; margin-bottom: 15px; border-radius: 5px; 
-      border: 1px solid #444; background: #222; color: white;
-      text-align: center; font-size: 1rem;
-    }
-
-    input:disabled { background: #333; color: #777; border: 1px solid #222; }
-
-    .controls { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-    button { 
-      padding: 12px 25px; cursor: pointer; border-radius: 8px; 
-      border: none; font-weight: bold; transition: 0.2s;
-    }
-    .btn-submit { background: #e94560; color: white; }
-    .btn-next { background: #00d2ff; color: #121212; display: none; }
-    .btn-study { background: #ffaa00; color: #121212; margin-top: 10px; }
-    
-    button:hover { opacity: 0.8; }
-
-    #result { margin-top: 15px; font-weight: bold; min-height: 24px; }
-    #score-text { font-size: 0.9rem; color: #888; margin-bottom: 10px; }
-    
-    .reveal-area { 
-      font-size: 0.9rem; color: #ffaa00; margin-top: 10px; 
-      background: #2a2a2a; padding: 15px; border-radius: 8px;
-      display: none; line-height: 1.6; text-align: left;
-    }
-
-    /* Reviewer Overlay */
-    #reviewer-overlay {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.95); z-index: 1000; overflow-y: auto; padding: 20px;
-    }
-    .reviewer-content {
-      background: #1e1e1e; max-width: 600px; margin: 20px auto;
-      padding: 30px; border-radius: 15px; text-align: left; border: 1px solid #444;
-    }
-    .reviewer-content h2 { color: #ffaa00; border-bottom: 1px solid #444; padding-bottom: 10px; }
-    .reviewer-content h3 { color: #00d2ff; margin-top: 25px; margin-bottom: 5px; }
-    .reviewer-content p { margin: 5px 0; font-size: 0.95rem; }
-    .reviewer-content strong { color: #e94560; }
-    
-    .danger-section {
-      background: rgba(233, 69, 96, 0.1); border: 1px solid #e94560;
-      padding: 15px; margin-top: 20px; border-radius: 8px;
-    }
-    .danger-section h3 { color: #e94560 !important; margin-top: 0 !important; }
-    .danger-item { margin-bottom: 10px; border-bottom: 1px solid rgba(233, 69, 96, 0.2); padding-bottom: 5px; }
-    .danger-item:last-child { border: none; }
-
-    .chart-container { width: 220px; margin: 10px auto; }
-  </style>
+        .card { background: var(--panel); padding: 30px; border-radius: 20px; box-shadow: 0 0 30px rgba(0,0,0,0.5); text-align: left; }
+        .difficulty-selector { margin-bottom: 20px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        .diff-btn, .study-btn { padding: 8px 15px; border-radius: 5px; border: 1px solid var(--cyan); background: transparent; color: var(--cyan); cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .diff-btn.active { background: var(--cyan); color: var(--bg); }
+        .study-btn { border-color: #ffd60a; color: #ffd60a; }
+        .submit-btn { background: var(--cyan); color: var(--bg); border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        
+        canvas { background: transparent; margin: 0 auto 20px; display: block; max-width: 100%; }
+        input { background: #0b1220; border: 2px solid var(--red); color: white; padding: 15px; font-size: 1.1rem; border-radius: 10px; text-align: center; width: 100%; box-sizing: border-box; margin-bottom: 10px; outline: none; }
+        
+        .word-bank { background: #0d1425; border-radius: 8px; padding: 15px; margin-bottom: 20px; border: 1px solid #1a2235; }
+        .word-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .word-item { padding: 6px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); }
+        .bg-red { background: #e63946; } .bg-blue { background: #0077b6; } .bg-cream { background: #f1e4c0; color: #333; } .bg-black { background: #000; } .bg-yellow { background: #ffd60a; color: #333; } .bg-gray { background: #334155; }
+        .option-btn { display: block; width: 100%; padding: 12px; margin: 8px 0; background: #1a2235; border: 1px solid #374151; color: white; border-radius: 8px; text-align: left; cursor: pointer; }
+        .option-btn.correct { background: #4ee44e !important; color: #0b1220; font-weight: bold; }
+        .option-btn.wrong { background: var(--red) !important; }
+    </style>
 </head>
 <body>
 
-<div class="container" id="quiz-container">
-  <h1>🚢 Fire Agent Mastery</h1>
-  <div id="score-text">Score: 0</div>
-  
-  <div id="main-content-area">
-    <div id="question-text">
-      <div id="fuel-source">Welcome, Student!<br>Read the guide, then start the randomized quiz.</div>
+<header>
+    <button class="nav-btn active" onclick="switchView('fire', this)">🔥 Fire Safety</button>
+    <button class="nav-btn" onclick="switchView('compass', this)">⚓ Compass</button>
+    <button class="nav-btn" onclick="switchView('exam', this)">📜 OIC REVIEWER</button>
+</header>
+
+<div class="container">
+    <section id="fire-view" class="view active">
+        <h1>Fire Safety Mastery</h1>
+        <div class="word-bank">
+            <div class="word-list">
+                <span class="word-item bg-red" onclick="fillFire('Water Fire Extinguisher')">Water</span>
+                <span class="word-item bg-cream" onclick="fillFire('Foam Fire Extinguisher')">Foam</span>
+                <span class="word-item bg-blue" onclick="fillFire('Dry Powder Fire Extinguisher')">Dry Powder</span>
+                <span class="word-item bg-black" onclick="fillFire('CO2 Fire Extinguisher')">CO2</span>
+                <span class="word-item bg-yellow" onclick="fillFire('Wet Chemical Fire Extinguisher')">Wet Chem</span>
+                <span class="word-item bg-gray" onclick="fillFire('Class A')">Class A</span>
+                <span class="word-item bg-gray" onclick="fillFire('Class B')">Class B</span>
+                <span class="word-item bg-gray" onclick="fillFire('Class C')">Class C</span>
+                <span class="word-item bg-gray" onclick="fillFire('Class D')">Class D</span>
+                <span class="word-item bg-gray" onclick="fillFire('Class K')">Class K</span>
+            </div>
+        </div>
+        <div class="card">
+            <div id="f-progress" style="color: var(--cyan); margin-bottom: 10px;">Question 1 / 10</div>
+            <div id="f-display" style="font-size: 70px; text-align: center; margin-bottom: 10px;">?</div>
+            <p id="f-prompt" style="font-size: 1.1rem; min-height: 50px;"></p>
+            <input type="text" id="fireInput" placeholder="Type or click from bank...">
+            <button class="submit-btn" onclick="checkFire()">Submit Answer</button>
+            <div id="f-msg" style="margin-top:20px; font-weight:bold; text-align:center;"></div>
+        </div>
+    </section>
+
+    <section id="compass-view" class="view">
+        <h1>Boxing the Compass</h1>
+        <div class="stats-dashboard">
+            <div class="stat-box"><span id="c-known">0 / 32</span><div class="stat-label">Progress</div></div>
+            <div class="stat-box"><span id="c-timer">10s</span><div class="stat-label" id="timer-label">Time Remaining</div></div>
+        </div>
+        <div class="timer-container"><div id="timer-bar"></div></div>
+        <div class="difficulty-selector">
+            <button class="study-btn" onclick="toggleStudyMode()">📖 REVIEW POINTS (60s)</button>
+            <button class="diff-btn active" onclick="setDiff('easy', this)">EASY</button>
+            <button class="diff-btn" onclick="setDiff('hard', this)">HARD</button>
+            <button class="diff-btn" onclick="setDiff('expert', this)">EXPERT</button>
+        </div>
+        <canvas id="compassCanvas" width="450" height="450"></canvas>
+        <div class="card" id="compassCard">
+            <input type="text" id="compassInput" placeholder="e.g. NbE">
+            <button class="submit-btn" onclick="checkCompass()">Confirm Heading</button>
+            <div id="c-msg" style="margin-top:10px; font-weight:bold; text-align:center;"></div>
+        </div>
+    </section>
+
+<section id="exam-view" class="view">
+    <div class="stats-dashboard">
+        <div class="stat-box"><span id="e-count">1 / 100</span><div class="stat-label">Question</div></div>
+        <div class="stat-box"><span id="e-category" style="color: #ffd60a; font-size: 0.8rem;">GENERAL</span><div class="stat-label">Category</div></div>
+        <div class="stat-box"><span id="e-score">0</span><div class="stat-label">Score</div></div>
     </div>
-
-    <div class="image-display-area" id="img-area" style="display:none;">
-      <img id="quizImage" src="" alt="Fire Class">
+    <div class="card">
+        <p id="e-question" style="font-size: 1.1rem; font-weight: bold; color: var(--cyan); margin-bottom: 20px;"></p>
+        <div id="e-options"></div>
+        <div id="e-msg" style="margin-top:20px; font-weight:bold; text-align:center;"></div>
     </div>
-
-    <div id="input-area" style="display:none;">
-      <p style="font-size: 0.8rem; color: #aaa; font-style: italic;">List 2+ agents separated by a comma</p>
-      <input type="text" id="answerInput" placeholder="Type agents here..." onkeydown="if(event.key==='Enter') handleEnter()">
-    </div>
-    
-    <div id="control-area" class="controls">
-      <button id="startBtn" class="btn-submit" onclick="startQuiz()">Start Quiz</button>
-      <button id="submitBtn" class="btn-submit" style="display:none;" onclick="submitAnswer()">Submit Answer</button>
-      <button id="nextBtn" class="btn-next" onclick="nextQuestion()">Next Question ➔</button>
-      <button id="studyBtnMain" class="btn-study" onclick="toggleReviewer(true)">Open Study Guide</button>
-    </div>
-
-    <p id="result"></p>
-    <div id="revealArea" class="reveal-area"></div>
-  </div>
-</div>
-
-<div id="reviewer-overlay">
-  <div class="reviewer-content">
-    <h2>📖 Maritime Study Guide</h2>
-    
-    <h3>Class A (Ordinary Solids)</h3>
-    <p><strong>Agents:</strong> Water, Foam, Dry Chemical (ABC).</p>
-
-    <h3>Class B (Flammable Liquids/Gases)</h3>
-    <p><strong>Agents:</strong> Foam, CO2, Dry Chemical (Purple K/ABC).</p>
-
-    <h3>Class C (Electrical)</h3>
-    <p><strong>Agents:</strong> CO2 (Best), Dry Chemical (Non-conductive).</p>
-
-    <h3>Class D (Combustible Metals)</h3>
-    <p><strong>Agents:</strong> <strong>Specialized Dry Powder</strong> ONLY (Sodium Chloride/Graphite base).</p>
-
-    <h3>Class K (Kitchen/Galley)</h3>
-    <p><strong>Agents:</strong> Wet Chemical (Potassium Acetate).</p>
-
-    <div class="danger-section">
-      <h3>⚠️ CRITICAL CAUTIONS</h3>
-      <div class="danger-item">
-        <strong>Water on Class B (Liquid):</strong> Fire will float and spread.
-      </div>
-      <div class="danger-item">
-        <strong>Water on Class C (Electrical):</strong> Severe risk of electrocution.
-      </div>
-      <div class="danger-item">
-        <strong>Water/CO2 on Class D (Metal):</strong> Explosive reaction.
-      </div>
-      <div class="danger-item">
-        <strong>Water on Class K (Grease):</strong> Massive steam fireball explosion.
-      </div>
-    </div>
-
-    <button onclick="toggleReviewer(false)" style="width:100%; margin-top:25px; background:#4ee44e; color:#121212; padding:15px; border-radius:8px; border:none; font-weight:bold;">I UNDERSTAND THE RISKS</button>
-  </div>
+</section>
 </div>
 
 <script>
-const originalQuizData = [
-  { 
-    class: "Class A", fuel: "Wood, paper, mattresses, fiberglass.",
-    requiredKeywords: ["water", "foam", "dry chemical", "phosphate"], 
-    fullList: "Water, Foam, or Dry Chemical (ABC)", image: "images/water.jpg"
-  },
-  { 
-    class: "Class B", fuel: "Diesel, gasoline, hydraulic oil, paint.",
-    requiredKeywords: ["foam", "carbon dioxide", "co2", "dry chemical", "purple k"],
-    fullList: "Foam, Carbon Dioxide (CO2), or Dry Chemical (Purple K)", image: "images/foam.jpg"
-  },
-  { 
-    class: "Class C", fuel: "Live switchboards, bridge electronics, motors.",
-    requiredKeywords: ["carbon dioxide", "co2", "dry chemical", "abc"],
-    fullList: "Carbon Dioxide (CO2) or Dry Chemical (ABC)", image: "images/co2.jpg"
-  },
-  { 
-    class: "Class D", fuel: "Magnesium, Titanium, Aluminum shavings.",
-    requiredKeywords: ["sodium chloride", "graphite", "dry powder"],
-    fullList: "Specialized Dry Powder", image: "images/powder.jpg"
-  },
-  { 
-    class: "Class K", fuel: "Galley deep fryers, cooking oils, fats.",
-    requiredKeywords: ["wet chemical", "potassium acetate"],
-    fullList: "Wet Chemical (Potassium Acetate)", image: "images/wet-chemical.jpg"
-  }
+    // --- GLOBAL NAV ---
+    function switchView(view, btn) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(view + '-view').classList.add('active');
+        btn.classList.add('active');
+        if(typeof isStudyMode !== 'undefined' && isStudyMode) stopStudyMode();
+        if(view === 'compass') { startTimer(); drawCompass(); }
+        if(view === 'fire') loadFire();
+        if(view === 'exam') loadExam();
+    }
+
+    // --- FIRE SAFETY (RESTORED & SHUFFLE ADDED) ---
+    let fIdx = 0;
+    const fireQuestionsRaw = [
+        { q: "Which agent is best for wood, paper, and textiles?", a: ["water fire extinguisher"], d: "🪵" },
+        { q: "Which agent is used for Class B and C involving electrical?", a: ["co2 fire extinguisher", "dry powder fire extinguisher"], d: "⚡" },
+        { q: "Primary agent for kitchen cooking oils?", a: ["wet chemical fire extinguisher"], d: "🍳" },
+        { q: "Agent for both Class A and B fires?", a: ["foam fire extinguisher"], d: "⛽" },
+        { q: "Known as 'Multi-Purpose' for A, B, and C?", a: ["dry powder fire extinguisher"], d: "🏗️" },
+        { q: "Burning Magnesium or Titanium class?", a: ["class d"], d: "⚙️" },
+        { q: "Computer servers and wiring class?", a: ["class c"], d: "💻" },
+        { q: "Burning cardboard and plastic class?", a: ["class a"], d: "📦" },
+        { q: "Flammable liquids like diesel class?", a: ["class b"], d: "🧴" },
+        { q: "Which class specifically requires Wet Chemical?", a: ["class k"], d: "🥓" }
+    ];
+    let fireData = [...fireQuestionsRaw];
+
+    function shuffleFire() {
+        for (let i = fireData.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [fireData[i], fireData[j]] = [fireData[j], fireData[i]];
+        }
+    }
+
+    function loadFire() {
+        if (fIdx === 0) shuffleFire(); // Shuffle every time we start a new round
+        const cur = fireData[fIdx];
+        document.getElementById('f-display').innerText = cur.d;
+        document.getElementById('f-prompt').innerText = cur.q;
+        document.getElementById('f-progress').innerText = `Question ${fIdx + 1} / ${fireData.length}`;
+        document.getElementById('fireInput').value = "";
+    }
+
+    function checkFire() {
+        const input = document.getElementById('fireInput').value.trim().toLowerCase();
+        if(fireData[fIdx].a.includes(input)) {
+            msg('f-msg', "Correct!", "#4ee44e");
+            fIdx++;
+            if (fIdx >= fireData.length) {
+                fIdx = 0; // Reset for next round
+                setTimeout(() => { alert("Fire Safety Set Complete!"); loadFire(); }, 800);
+            } else {
+                setTimeout(loadFire, 800);
+            }
+        } else {
+            msg('f-msg', "Wrong!", "#ff4d4d");
+        }
+    }
+
+    function fillFire(v) { document.getElementById('fireInput').value = v; checkFire(); }
+
+    // --- COMPASS LOGIC ---
+    const pts = ["N", "NbE", "NNE", "NEbN", "NE", "NEbE", "ENE", "EbN", "E", "EbS", "ESE", "SEbE", "SE", "SEbS", "SSE", "SbE", "S", "SbW", "SSW", "SWbS", "SW", "SWbW", "WSW", "WbS", "W", "WbN", "WNW", "NWbW", "NW", "NWbN", "NNW", "NbW"];
+    let cIdx = 0, disc = new Set(), diff = 'easy', timeLeft = 10, timerInterval = null, isStudyMode = false;
+    const canvas = document.getElementById("compassCanvas"), ctx = canvas.getContext("2d");
+
+    function setDiff(mode, btn) {
+        if(isStudyMode) stopStudyMode();
+        diff = mode;
+        disc.clear();
+        document.getElementById('c-known').innerText = "0 / 32";
+        cIdx = (mode === 'expert') ? Math.floor(Math.random() * 32) : 0;
+        document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        startTimer();
+        drawCompass();
+    }
+
+    function nextPoint() {
+        if(diff === 'easy') cIdx = (cIdx + 1) % 32;
+        else if(diff === 'hard') cIdx = (cIdx - 1 + 32) % 32;
+        else cIdx = Math.floor(Math.random() * 32);
+        drawCompass();
+    }
+
+    function drawCompass() {
+        const cx=225, cy=225, r=180;
+        ctx.clearRect(0,0,450,450);
+        ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.strokeStyle="#00e5ff"; ctx.lineWidth=3; ctx.stroke();
+        for(let i=0; i<32; i++) {
+            const rad = (i*11.25-90)*Math.PI/180;
+            const isMaj = i%8===0;
+            ctx.beginPath(); ctx.moveTo(cx+Math.cos(rad)*r, cy+Math.sin(rad)*r);
+            ctx.lineTo(cx+Math.cos(rad)*(r-(isMaj?15:8)), cy+Math.sin(rad)*(r-(isMaj?15:8)));
+            ctx.strokeStyle = isMaj ? "#00e5ff" : "#444"; ctx.stroke();
+            if(isStudyMode || disc.has(i)) {
+                ctx.save(); ctx.translate(cx+Math.cos(rad)*(r-30), cy+Math.sin(rad)*(r-30));
+                ctx.fillStyle = ["N","E","S","W"].includes(pts[i]) ? "#ff4d4d" : "white";
+                ctx.font = isMaj ? "bold 13px Arial" : "9px Arial"; ctx.textAlign="center"; ctx.fillText(pts[i], 0, 5); ctx.restore();
+            }
+        }
+        if(!isStudyMode) {
+            const tRad = (cIdx*11.25-90)*Math.PI/180;
+            ctx.save(); ctx.translate(cx,cy); ctx.rotate(tRad+Math.PI/2);
+            ctx.beginPath(); ctx.moveTo(0,-140); ctx.lineTo(12,0); ctx.lineTo(-12,0); ctx.fillStyle="#ff4d4d"; ctx.fill();
+            ctx.beginPath(); ctx.moveTo(0,140); ctx.lineTo(12,0); ctx.lineTo(-12,0); ctx.fillStyle="white"; ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    function toggleStudyMode() {
+        isStudyMode = true; timeLeft = 60;
+        document.getElementById('timer-label').innerText = "STUDY TIME";
+        document.getElementById('compassCard').style.opacity = "0.3";
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft -= 0.1; updateTimerUI(); drawCompass();
+            if(timeLeft <= 0) stopStudyMode();
+        }, 100);
+    }
+    function stopStudyMode() {
+        isStudyMode = false; document.getElementById('timer-label').innerText = "Time Remaining";
+        document.getElementById('compassCard').style.opacity = "1"; startTimer();
+    }
+    function startTimer() {
+        clearInterval(timerInterval); timeLeft=10;
+        timerInterval=setInterval(()=>{ timeLeft-=0.1; updateTimerUI(); if(timeLeft<=0){ nextPoint(); startTimer(); } }, 100);
+    }
+    function updateTimerUI() {
+        document.getElementById('timer-bar').style.width=(timeLeft/(isStudyMode?60:10))*100+"%";
+        document.getElementById('c-timer').innerText=Math.ceil(timeLeft)+"s";
+    }
+    function checkCompass() {
+        const inputEl = document.getElementById('compassInput');
+        if(inputEl.value.trim().toUpperCase() === pts[cIdx].toUpperCase()) {
+            disc.add(cIdx); msg('c-msg', "Correct!", "#4ee44e"); nextPoint(); startTimer(); 
+            inputEl.value=""; document.getElementById('c-known').innerText=`${disc.size} / 32`;
+        } else {
+            msg('c-msg', "Wrong! Try again.", "#ff4d4d");
+            inputEl.value = "";
+        }
+    }
+
+   // --- BOARD PREP ---
+
+// 1. Define the tracking variables
+let currentExamIdx = 0; 
+let examScore = 0;
+let shuffledQuestions = [];      
+
+// 2. The Question Database
+const examQuestions = [
+    // --- NAVIGATION & GENERAL ---
+    { 
+        q: "What is the reference line for measuring Longitude?", 
+        a: "The Prime Meridian (Greenwich)", 
+        o: ["The Equator", "The Prime Meridian (Greenwich)", "International Date Line", "Tropic of Cancer"],
+        cat: "NAVIGATION"
+    },
+    { 
+        q: "A 'Small Circle' on the Earth's surface is any circle whose plane:", 
+        a: "Does not pass through the center of the Earth", 
+        o: ["Passes through the geographical poles", "Passes through the center of the Earth", "Does not pass through the center of the Earth", "Is parallel to the Prime Meridian"],
+        cat: "NAVIGATION"
+    },
+    { 
+        q: "In ECDIS, what color is used to represent 'Isolated Danger' symbols?", 
+        a: "Magenta", 
+        o: ["Black", "Magenta", "Red", "Blue"],
+        cat: "NAVIGATION"
+    },
+    { 
+        q: "To convert a Compass Course to a True Course, you must apply:", 
+        a: "Variation and Deviation", 
+        o: ["Variation and Deviation", "Deviation only", "Drift and Leeway", "Magnetic Dip"],
+        cat: "NAVIGATION"
+    },
+    { 
+        q: "Which publication contains information on light characteristics and fog signals?", 
+        a: "List of Lights", 
+        o: ["Notice to Mariners", "Sailing Directions", "List of Lights", "Tide Tables"],
+        cat: "NAVIGATION"
+    },
+    { 
+        q: "What is the frequency of GPS L1 signals?", 
+        a: "1575.42 MHz", 
+        o: ["1227.60 MHz", "1575.42 MHz", "1090.00 MHz", "2182.00 KHz"],
+        cat: "NAVIGATION"
+    },
+    { 
+        q: "What is the meaning of a 'Simple' fix in navigation?", 
+        a: "The intersection of two or more position lines (LOPs) taken at the same time", 
+        o: ["A position based on Dead Reckoning", "A single bearing from a lighthouse", "The intersection of two or more position lines (LOPs) taken at the same time", "A position obtained by celestial observation only"],
+        cat: "NAVIGATION"
+    },
+    { 
+        q: "The distance between the sun and the earth is greatest at:", 
+        a: "Aphelion", 
+        o: ["Perihelion", "Aphelion", "Vernal Equinox", "Winter Solstice"],
+        cat: "NAVIGATION"
+    },
+    { 
+        q: "Which radar control is used to suppress clutter from rain or snow?", 
+        a: "FTC (Fast Time Constant)", 
+        o: ["Gain", "STC (Sensitivity Time Control)", "FTC (Fast Time Constant)", "Brilliance"],
+        cat: "NAVIGATION"
+    },
+    { 
+        q: "A vessel's position obtained by taking a bearing and a range from a single object is a:", 
+        a: "Running Fix", 
+        o: ["Estimated Position", "Running Fix", "Dead Reckoning Position", "Celestial Fix"],
+        cat: "NAVIGATION"
+    },
+
+    // --- COLREGs ---
+    { 
+        q: "Under Rule 5, every vessel must maintain a proper look-out by:", 
+        a: "Sight and hearing as well as by all available means appropriate", 
+        o: ["Sight and hearing as well as by all available means appropriate", "Radar and Binoculars only", "VHF radio monitoring", "Posting a person on the forecastle only"],
+        cat: "COLREGs"
+    },
+    { 
+        q: "What is the day shape for a vessel 'Not Under Command'?", 
+        a: "Two black balls in a vertical line", 
+        o: ["A black diamond", "Two black balls in a vertical line", "Three black balls in a vertical line", "A cylinder"],
+        cat: "COLREGs"
+    },
+    { 
+        q: "In a crossing situation, which vessel is the 'Give-way' vessel?", 
+        a: "The vessel which has the other on her own starboard side", 
+        o: ["The vessel which has the other on her own port side", "The larger vessel", "The vessel which has the other on her own starboard side", "The faster vessel"],
+        cat: "COLREGs"
+    },
+    { 
+        q: "Rule 6 (Safe Speed) applies to vessels in:", 
+        a: "All conditions of visibility", 
+        o: ["Restricted visibility only", "Clear visibility only", "All conditions of visibility", "Narrow channels only"],
+        cat: "COLREGs"
+    },
+    { 
+        q: "A power-driven vessel 'underway but stopped and making no way' through the water shall exhibit:", 
+        a: "The same lights as a vessel making way", 
+        o: ["Two all-round red lights", "A single white light", "The same lights as a vessel making way", "No lights at all"],
+        cat: "COLREGs"
+    },
+    { 
+        q: "What is the fog signal for a vessel constrained by her draft?", 
+        a: "One prolonged blast followed by two short blasts every 2 minutes", 
+        o: ["One prolonged blast every 2 minutes", "Two prolonged blasts every 2 minutes", "One prolonged blast followed by two short blasts every 2 minutes", "Four short blasts"],
+        cat: "COLREGs"
+    },
+    { 
+        q: "A 'Short Blast' has a duration of approximately:", 
+        a: "One second", 
+        o: ["One second", "Two seconds", "Four to six seconds", "Half a second"],
+        cat: "COLREGs"
+    },
+    { 
+        q: "Which rule defines the 'Responsibility between Vessels' (Hierarchy)?", 
+        a: "Rule 18", 
+        o: ["Rule 10", "Rule 18", "Rule 14", "Rule 19"],
+        cat: "COLREGs"
+    },
+    { 
+        q: "In a narrow channel, a vessel of less than 20 meters shall not:", 
+        a: "Impede the passage of a vessel which can safely navigate only within such channel", 
+        o: ["Anchor at all", "Use whistle signals", "Impede the passage of a vessel which can safely navigate only within such channel", "Exceed 5 knots"],
+        cat: "COLREGs"
+    },
+    { 
+        q: "What lights must a vessel 'Restricted in her ability to maneuver' show at night?", 
+        a: "Red-White-Red in a vertical line", 
+        o: ["Red over Red", "Green over White", "Red-White-Red in a vertical line", "Three White lights in a line"],
+        cat: "COLREGs"
+    },
+
+    // --- CARGO HANDLING ---
+    { 
+        q: "What is the definition of 'Stowage Factor'?", 
+        a: "The volume occupied by one unit of weight of cargo", 
+        o: ["The weight of cargo per square meter", "The volume occupied by one unit of weight of cargo", "The percentage of empty space in a hold", "The total capacity of a cargo hold"],
+        cat: "CARGO"
+    },
+    { 
+        q: "The vertical distance between the Keel and the Center of Buoyancy is:", 
+        a: "KB", 
+        o: ["KG", "KM", "KB", "GM"],
+        cat: "CARGO"
+    },
+    { 
+        q: "A 'Stiff Ship' is characterized by:", 
+        a: "A very large GM and a short, jerky rolling period", 
+        o: ["A small GM and a slow, easy roll", "A neutral GM", "A very large GM and a short, jerky rolling period", "A negative GM"],
+        cat: "CARGO"
+    },
+    { 
+        q: "Which cargo document provides information on the hazardous properties of chemicals?", 
+        a: "MSDS (Material Safety Data Sheet)", 
+        o: ["Cargo Manifest", "Bill of Lading", "MSDS (Material Safety Data Sheet)", "Mate's Receipt"],
+        cat: "CARGO"
+    },
+    { 
+        q: "'Broken Stowage' refers to:", 
+        a: "The empty spaces between packages or space lost due to dunnage", 
+        o: ["Damaged cargo packages", "The empty spaces between packages or space lost due to dunnage", "The weight of the dunnage used", "Cargo that has shifted during transit"],
+        cat: "CARGO"
+    },
+    { 
+        q: "The angle of list is caused by:", 
+        a: "An off-center distribution of weight", 
+        o: ["External forces like wind", "The ship's forward motion", "An off-center distribution of weight", "The density of sea water"],
+        cat: "CARGO"
+    },
+    { 
+        q: "What is the purpose of 'Dunnage'?", 
+        a: "To protect cargo from moisture and ensure ventilation", 
+        o: ["To increase the ship's stability", "To protect cargo from moisture and ensure ventilation", "To secure the vessel at the pier", "To calculate the cargo weight"],
+        cat: "CARGO"
+    },
+    { 
+        q: "What does the 'Ullage' of a tank represent?", 
+        a: "The distance from the top of the tank to the surface of the liquid", 
+        o: ["The depth of the liquid in the tank", "The total weight of the liquid", "The distance from the top of the tank to the surface of the liquid", "The pressure inside the tank"],
+        cat: "CARGO"
+    },
+
+    // --- SAFETY & MARPOL ---
+    { 
+        q: "Under MARPOL Annex I, what is the maximum oil content for discharge from machinery spaces?", 
+        a: "15 parts per million (ppm)", 
+        o: ["100 ppm", "50 ppm", "15 parts per million (ppm)", "0 ppm"],
+        cat: "SAFETY"
+    },
+    { 
+        q: "How many lifebuoys are required on a cargo ship between 100m and 150m in length?", 
+        a: "At least 10", 
+        o: ["At least 8", "At least 10", "At least 12", "At least 14"],
+        cat: "SAFETY"
+    },
+    { 
+        q: "What is the signal for a 'General Emergency' on the ship's whistle?", 
+        a: "Seven short blasts followed by one prolonged blast", 
+        o: ["Three long blasts", "Continuous ringing of the bell", "Seven short blasts followed by one prolonged blast", "One prolonged blast followed by seven short blasts"],
+        cat: "SAFETY"
+    },
+    { 
+        q: "Which MARPOL Annex regulates the prevention of pollution by Sewage?", 
+        a: "Annex IV", 
+        o: ["Annex I", "Annex II", "Annex IV", "Annex VI"],
+        cat: "SAFETY"
+    },
+    { 
+        q: "The 'Short-term' effect of Free Surface is:", 
+        a: "A reduction in the effective Metacentric Height (GM)", 
+        o: ["An increase in buoyancy", "A reduction in the effective Metacentric Height (GM)", "A change in the vessel's trim", "A permanent angle of loll"],
+        cat: "SAFETY"
+    },
+    { 
+        q: "A Fire Control Plan must be permanently stowed in:", 
+        a: "A prominently marked weather-tight enclosure outside the deckhouse", 
+        o: ["The Bridge only", "The Engine Room", "A prominently marked weather-tight enclosure outside the deckhouse", "The Captain's cabin"],
+        cat: "SAFETY"
+    },
+    { 
+        q: "The 'SOPEP' manual is required for tankers of:", 
+        a: "150 gross tonnage and above", 
+        o: ["300 gross tonnage and above", "400 gross tonnage and above", "150 gross tonnage and above", "All vessels regardless of size"],
+        cat: "SAFETY"
+    },
+    { 
+        q: "In the event of a 'Man Overboard,' which maneuver returns the ship to the original track in the shortest time?", 
+        a: "The Anderson Turn (Single Turn)", 
+        o: ["The Williamson Turn", "The Anderson Turn (Single Turn)", "The Scharnow Turn", "Full Astern"],
+        cat: "SAFETY"
+    },
+{ 
+    q: "A Class 'B' fire is most effectively extinguished by which of the following?", 
+    a: "Smothering", 
+    o: ["Cooling", "Smothering", "Removing Fuel", "Inhibition"],
+    cat: "SAFETY"
+},
+{ 
+    q: "What is the minimum number of lifebuoys required for a vessel of 200m or more in length?", 
+    a: "14", 
+    o: ["8", "10", "12", "14"],
+    cat: "SAFETY"
+},
+{ 
+    q: "Under COLREG Rule 13, a vessel is 'overtaking' when coming up from a direction more than how many degrees abaft her beam?", 
+    a: "22.5 degrees", 
+    o: ["11.25 degrees", "22.5 degrees", "45 degrees", "67.5 degrees"],
+    cat: "COLREGs"
+},
+{ 
+    q: "The 'Daily Test' of GMDSS equipment must include:", 
+    a: "VHF DSC internal test without radiation of a signal", 
+    o: ["Testing the EPIRB", "VHF DSC internal test without radiation of a signal", "Testing the SART", "Sending a test call to a Coast Station"],
+    cat: "GMDSS"
+},
+{ 
+    q: "How many hours before departure must the steering gear be tested as per SOLAS?", 
+    a: "12 hours", 
+    o: ["1 hour", "6 hours", "12 hours", "24 hours"],
+    cat: "WATCHKEEPING"
+},
+{ 
+    q: "The 'Oil Record Book Part I' (Machinery Space) is required for every ship of:", 
+    a: "400 gross tonnage and above", 
+    o: ["150 gross tonnage and above", "400 gross tonnage and above", "500 gross tonnage and above", "1000 gross tonnage and above"],
+    cat: "MARPOL"
+},
+{ 
+    q: "Which light is required for a vessel 'Aground' at night?", 
+    a: "Two all-round red lights in a vertical line and anchor lights", 
+    o: ["Three all-round red lights", "Two all-round red lights in a vertical line and anchor lights", "One all-round red light", "One white light only"],
+    cat: "COLREGs"
+},
+{ 
+    q: "What is the standard 'Service Life' of a Life Raft Hydrostatic Release Unit (HRU)?", 
+    a: "2 years", 
+    o: ["1 year", "2 years", "3 years", "5 years"],
+    cat: "SAFETY"
+},
+{ 
+    q: "In an ECDIS system, what does 'SCAMIN' stand for?", 
+    a: "Scale Minimum", 
+    o: ["Safety Configuration", "Scale Minimum", "Scan Interval", "Sector Map Input"],
+    cat: "NAVIGATION"
+},
+{ 
+    q: "Which flag should be flown when a vessel is in 'Quarantine' and requesting free pratique?", 
+    a: "Lima", 
+    o: ["Alpha", "Hotel", "Lima", "Quebec"],
+    cat: "COMMUNICATIONS"
+},
+{ 
+    q: "The 3rd Officer is inspecting lifejackets. What is the required length of the whistle cord?", 
+    a: "Long enough to reach the wearer's mouth", 
+    o: ["10 cm", "20 cm", "Long enough to reach the wearer's mouth", "No specific length"],
+    cat: "SAFETY"
+},
+{ 
+    q: "What is the purpose of a 'SART' (Search and Rescue Transponder)?", 
+    a: "To locate a survival craft by creating dots on a 3cm (X-band) radar", 
+    o: ["To transmit a voice distress", "To locate a survival craft by creating dots on a 3cm (X-band) radar", "To indicate the ship's AIS position", "To measure the depth of the water"],
+    cat: "GMDSS"
+},
+{ 
+    q: "When a vessel is 'NUC' (Not Under Command) and making way, she must show:", 
+    a: "Two all-round red lights, sidelights, and a sternlight", 
+    o: ["Two all-round red lights only", "Two all-round red lights, sidelights, and a sternlight", "Three all-round red lights", "One all-round red light"],
+    cat: "COLREGs"
+},
+{ 
+    q: "The distance between the waterline and the deck edge is called:", 
+    a: "Freeboard", 
+    o: ["Draft", "Freeboard", "Air Draft", "Under-deck tonnage"],
+    cat: "CARGO"
+},
+{ 
+    q: "A fire signal of 'Continuous Ringing of the Bell' usually indicates:", 
+    a: "Fire Alarm / Fire on board", 
+    o: ["Abandon Ship", "Man Overboard", "Fire Alarm / Fire on board", "Engine Failure"],
+    cat: "SAFETY"
+},
+{ 
+    q: "What is the maximum distance between the 'Safe Water' mark and the start of a channel?", 
+    a: "There is no fixed distance", 
+    o: ["1 mile", "2 miles", "5 miles", "There is no fixed distance"],
+    cat: "NAVIGATION"
+},
+{ 
+    q: "Which publication provides instructions on how to treat medical emergencies at sea?", 
+    a: "MFAG (Medical First Aid Guide)", 
+    o: ["IMDG Code", "MFAG (Medical First Aid Guide)", "P&A Manual", "Safety Management System"],
+    cat: "SAFETY"
+},
+{ 
+    q: "The error caused by the ship's magnetic field on the compass is called:", 
+    a: "Deviation", 
+    o: ["Variation", "Deviation", "Drift", "Local Attraction"],
+    cat: "NAVIGATION"
+},
+{ 
+    q: "According to Rule 34, a vessel in sight of another and intending to overtake on her starboard side in a narrow channel shall sound:", 
+    a: "Two prolonged blasts followed by one short blast", 
+    o: ["One short blast", "Two short blasts", "Two prolonged blasts followed by one short blast", "One prolonged blast"],
+    cat: "COLREGs"
+},
+{ 
+    q: "What is the frequency of the 'SART' signal?", 
+    a: "9 GHz", 
+    o: ["156.8 MHz", "121.5 MHz", "9 GHz", "2182 KHz"],
+    cat: "GMDSS"
+},
+{ 
+    q: "How many SARTs are required on a cargo ship of 500 GT or more?", 
+    a: "Two", 
+    o: ["One", "Two", "Three", "Four"],
+    cat: "SAFETY"
+},
+{ 
+    q: "Which part of the sextant is used to view both the horizon and the celestial body?", 
+    a: "Telescope", 
+    o: ["Index Mirror", "Horizon Glass", "Telescope", "Micrometer Drum"],
+    cat: "NAVIGATION"
+},
+{ 
+    q: "MARPOL Annex VI regulates what type of pollution?", 
+    a: "Air Pollution", 
+    o: ["Oil Pollution", "Sewage Pollution", "Garbage Pollution", "Air Pollution"],
+    cat: "MARPOL"
+},
+{ 
+    q: "What is the day shape for a vessel 'Constrained by her Draft'?", 
+    a: "A Cylinder", 
+    o: ["A Cone", "A Cylinder", "A Diamond", "A Ball"],
+    cat: "COLREGs"
+},
+{ 
+    q: "Which sensor is used to measure the vessel's speed 'Through the water'?", 
+    a: "Doppler Log", 
+    o: ["GPS", "Doppler Log", "Anemometer", "Echo Sounder"],
+    cat: "NAVIGATION"
+},
+{ 
+    q: "What is the meaning of the signal 'Three Short Blasts'?", 
+    a: "I am operating astern propulsion", 
+    o: ["I am altering course to port", "I am altering course to starboard", "I am operating astern propulsion", "I am in distress"],
+    cat: "COLREGs"
+},
+{ 
+    q: "Which MARPOL Annex applies to 'Harmful Substances Carried by Sea in Packaged Form'?", 
+    a: "Annex III", 
+    o: ["Annex I", "Annex II", "Annex III", "Annex IV"],
+    cat: "MARPOL"
+},
+{ 
+    q: "The 'Height of Tide' is measured from which reference line?", 
+    a: "Chart Datum", 
+    o: ["Mean Sea Level", "Chart Datum", "Lowest Astronomical Tide", "High Water Mark"],
+    cat: "NAVIGATION"
+},
+{ 
+    q: "A fire involving 'Energized Electrical Equipment' is considered:", 
+    a: "Class C (E in some regions)", 
+    o: ["Class A", "Class B", "Class C (E in some regions)", "Class D"],
+    cat: "SAFETY"
+},
+{ 
+    q: "In the buoyage system Region A, what is the color of a 'Starboard Hand' buoy?", 
+    a: "Green", 
+    o: ["Red", "Green", "Yellow", "Black and Yellow"],
+    cat: "NAVIGATION"
+}
 ];
 
-let quizData = [];
-let current = 0; let score = 0; let answered = false;
-
-const quizTemplate = `
-    <div id="question-text"><div id="fuel-source"></div></div>
-    <div class="image-display-area" id="img-area"><img id="quizImage" src="" alt="Fire Class"></div>
-    <div id="input-area">
-      <p style="font-size: 0.8rem; color: #aaa; font-style: italic;">List 2+ agents separated by a comma</p>
-      <input type="text" id="answerInput" placeholder="Type agents here..." onkeydown="if(event.key==='Enter') handleEnter()">
-    </div>
-    <div id="control-area" class="controls">
-      <button id="submitBtn" class="btn-submit" onclick="submitAnswer()">Submit Answer</button>
-      <button id="nextBtn" class="btn-next" onclick="nextQuestion()">Next Question ➔</button>
-    </div>
-    <p id="result"></p>
-    <div id="revealArea" class="reveal-area"></div>
-`;
-
-function toggleReviewer(show) {
-  document.getElementById("reviewer-overlay").style.display = show ? "block" : "none";
+function shuffleExam() {
+    shuffledQuestions = [...examQuestions]; 
+    for (let i = shuffledQuestions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledQuestions[i], shuffledQuestions[j]] = [shuffledQuestions[j], shuffledQuestions[i]];
+    }
 }
 
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
+// 3. The Function to Load Questions
+function loadExam() {
+    if (currentExamIdx === 0) shuffleExam();
+
+    const q = shuffledQuestions[currentExamIdx];
+    
+    // UPDATE THE CATEGORY DISPLAY
+    document.getElementById('e-category').innerText = q.cat || "GENERAL";
+    
+    document.getElementById('e-count').innerText = `${currentExamIdx + 1} / ${shuffledQuestions.length}`;
+    document.getElementById('e-question').innerText = q.q;
+    document.getElementById('e-score').innerText = examScore;
+    
+    const optionsBox = document.getElementById('e-options');
+    optionsBox.innerHTML = ""; 
+
+    // --- ADDED THIS PART: Create and Shuffle the options list ---
+    let shuffledOptions = [...q.o]; 
+    for (let i = shuffledOptions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
+    }
+    
+    // Now use the shuffledOptions list to create buttons
+    shuffledOptions.forEach(o => {
+        const btn = document.createElement('button');
+        btn.className = "option-btn";
+        btn.innerText = o;
+        
+        btn.onclick = () => {
+            const allBtns = optionsBox.querySelectorAll('button');
+            allBtns.forEach(b => b.style.pointerEvents = 'none');
+
+            if(o === q.a) {
+                btn.classList.add('correct');
+                examScore++;
+                document.getElementById('e-score').innerText = examScore;
+                msg('e-msg', "Correct!", "#4ee44e");
+            } else {
+                btn.classList.add('wrong');
+                msg('e-msg', `Wrong! The correct answer was: ${q.a}`, "#ff4d4d");
+            }
+            
+            setTimeout(() => {
+                currentExamIdx++;
+                if (currentExamIdx >= shuffledQuestions.length) {
+                    alert(`Set Finished! Final Score: ${examScore} / ${shuffledQuestions.length}`);
+                    currentExamIdx = 0;
+                    examScore = 0; 
+                }
+                loadExam();
+            }, 1500); 
+        };
+        optionsBox.appendChild(btn);
+    });
+}
+// Global Message helper
+function msg(id, t, c) { 
+    const el = document.getElementById(id); 
+    el.innerText = t; 
+    el.style.color = c; 
+    setTimeout(() => el.innerText = "", 1000); 
 }
 
-function startQuiz() {
-  document.getElementById("main-content-area").innerHTML = quizTemplate;
-  quizData = shuffle([...originalQuizData]);
-  current = 0;
-  score = 0;
-  document.getElementById("score-text").innerText = "Score: 0";
-  loadQuestion();
-}
+// Initialize the first view
+loadFire();
 
-function loadQuestion() {
-  answered = false;
-  const currentData = quizData[current];
-  document.getElementById("quizImage").src = currentData.image;
-  document.getElementById("fuel-source").innerHTML = `<strong>${currentData.class}:</strong><br>${currentData.fuel}`;
-  document.getElementById("revealArea").style.display = "none";
-  document.getElementById("nextBtn").style.display = "none";
-  document.getElementById("submitBtn").style.display = "inline-block";
-  document.getElementById("answerInput").disabled = false;
-  document.getElementById("answerInput").value = "";
-  document.getElementById("result").innerText = "";
-  document.getElementById("answerInput").focus();
-}
+    function msg(id, t, c) { const el = document.getElementById(id); el.innerText = t; el.style.color = c; setTimeout(()=>el.innerText="", 1000); }
 
-function handleEnter() { if (!answered) submitAnswer(); else nextQuestion(); }
-
-function submitAnswer() {
-  const userInput = document.getElementById("answerInput").value.toLowerCase().trim();
-  if (userInput === "") return;
-  answered = true;
-  const currentItem = quizData[current];
-  const userAnswers = userInput.split(',').map(item => item.trim());
-  
-  let matchCount = 0;
-  let availableKeywords = [...currentItem.requiredKeywords];
-  userAnswers.forEach(ua => {
-    const foundIndex = availableKeywords.findIndex(kw => ua.includes(kw));
-    if (foundIndex !== -1) { matchCount++; availableKeywords.splice(foundIndex, 1); }
-  });
-
-  document.getElementById("revealArea").style.display = "block";
-  document.getElementById("revealArea").innerHTML = `<strong>Correct Equipment:</strong><br>${currentItem.fullList}`;
-  document.getElementById("submitBtn").style.display = "none";
-  document.getElementById("nextBtn").style.display = "inline-block";
-  document.getElementById("answerInput").disabled = true;
-
-  const threshold = (currentItem.class.includes("K") || currentItem.class.includes("D")) ? 1 : 2;
-  if (matchCount >= threshold) {
-    document.getElementById("result").innerHTML = `<span style='color: #4ee44e;'>✅ Correct!</span>`;
-    score++;
-  } else {
-    document.getElementById("result").innerHTML = `<span style='color: #ff4d4d;'>❌ Incorrect.</span>`;
-  }
-  document.getElementById("score-text").innerText = "Score: " + score;
-}
-
-function nextQuestion() {
-  current++;
-  if (current >= quizData.length) showFinalResults();
-  else loadQuestion();
-}
-
-function showFinalResults() {
-  document.getElementById("main-content-area").innerHTML = `
-    <h2 style="color: #00d2ff;">Final Results</h2>
-    <div class="chart-container"><canvas id="scoreChart"></canvas></div>
-    <div style="font-size: 1.5rem; margin: 10px 0;">Score: ${score} / ${quizData.length}</div>
-    <button onclick="startQuiz()" style="background:#e94560; color:white; padding:15px 25px; border-radius:8px; border:none; cursor:pointer; font-weight:bold;">Shuffle & Restart Quiz</button>
-    <button class="btn-study" onclick="toggleReviewer(true)">Study Guide</button>
-  `;
-  const ctx = document.getElementById('scoreChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Correct', 'Wrong'],
-      datasets: [{ data: [score, quizData.length - score], backgroundColor: ['#4ee44e', '#e94560'], borderWidth: 0 }]
-    },
-    options: { plugins: { legend: { position: 'bottom', labels: { color: 'white' } } } }
-  });
-}
+    loadFire();
 </script>
 </body>
 </html>
