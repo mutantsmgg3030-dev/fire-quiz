@@ -96,18 +96,18 @@
         </div>
     </section>
 
-<section id="exam-view" class="view">
-    <div class="stats-dashboard">
-        <div class="stat-box"><span id="e-count">1 / 100</span><div class="stat-label">Question</div></div>
-        <div class="stat-box"><span id="e-category" style="color: #ffd60a; font-size: 0.8rem;">GENERAL</span><div class="stat-label">Category</div></div>
-        <div class="stat-box"><span id="e-score">0</span><div class="stat-label">Score</div></div>
-    </div>
-    <div class="card">
-        <p id="e-question" style="font-size: 1.1rem; font-weight: bold; color: var(--cyan); margin-bottom: 20px;"></p>
-        <div id="e-options"></div>
-        <div id="e-msg" style="margin-top:20px; font-weight:bold; text-align:center;"></div>
-    </div>
-</section>
+    <section id="exam-view" class="view">
+        <div class="stats-dashboard">
+            <div class="stat-box"><span id="e-count">1 / 100</span><div class="stat-label">Question</div></div>
+            <div class="stat-box"><span id="e-category" style="color: #ffd60a; font-size: 0.8rem;">GENERAL</span><div class="stat-label">Category</div></div>
+            <div class="stat-box"><span id="e-score">0</span><div class="stat-label">Score</div></div>
+        </div>
+        <div class="card">
+            <p id="e-question" style="font-size: 1.1rem; font-weight: bold; color: var(--cyan); margin-bottom: 20px;"></p>
+            <div id="e-options"></div>
+            <div id="e-msg" style="margin-top:20px; font-weight:bold; text-align:center;"></div>
+        </div>
+    </section>
 </div>
 
 <script>
@@ -123,7 +123,7 @@
         if(view === 'exam') loadExam();
     }
 
-    // --- FIRE SAFETY (RESTORED & SHUFFLE ADDED) ---
+    // --- FIRE SAFETY ---
     let fIdx = 0;
     const fireQuestionsRaw = [
         { q: "Which agent is best for wood, paper, and textiles?", a: ["water fire extinguisher"], d: "🪵" },
@@ -146,8 +146,9 @@
         }
     }
 
+    // Fixed duplicated logic references across view swaps
     function loadFire() {
-        if (fIdx === 0) shuffleFire(); // Shuffle every time we start a new round
+        if (fIdx === 0) shuffleFire();
         const cur = fireData[fIdx];
         document.getElementById('f-display').innerText = cur.d;
         document.getElementById('f-prompt').innerText = cur.q;
@@ -161,7 +162,7 @@
             msg('f-msg', "Correct!", "#4ee44e");
             fIdx++;
             if (fIdx >= fireData.length) {
-                fIdx = 0; // Reset for next round
+                fIdx = 0;
                 setTimeout(() => { alert("Fire Safety Set Complete!"); loadFire(); }, 800);
             } else {
                 setTimeout(loadFire, 800);
@@ -191,9 +192,27 @@
     }
 
     function nextPoint() {
-        if(diff === 'easy') cIdx = (cIdx + 1) % 32;
-        else if(diff === 'hard') cIdx = (cIdx - 1 + 32) % 32;
-        else cIdx = Math.floor(Math.random() * 32);
+        if(diff === 'easy') {
+            cIdx = (cIdx + 1) % 32;
+        } else if(diff === 'hard') {
+            cIdx = (cIdx - 1 + 32) % 32;
+        } else if(diff === 'expert') {
+            if (disc.size >= 32) {
+                disc.clear();
+                document.getElementById('c-known').innerText = "0 / 32";
+                alert("Excellent! You've boxed the entire compass on Expert difficulty!");
+            }
+            
+            let remainingPoints = [];
+            for (let i = 0; i < 32; i++) {
+                if (!disc.has(i)) {
+                    remainingPoints.push(i);
+                }
+            }
+            
+            const randomIndex = Math.floor(Math.random() * remainingPoints.length);
+            cIdx = remainingPoints[randomIndex];
+        }
         drawCompass();
     }
 
@@ -255,497 +274,539 @@
         }
     }
 
-   // --- BOARD PREP ---
+    // --- OIC REVIEWER EXAM PREP ---
+    let currentExamIdx = 0; 
+    let examScore = 0;
+    let shuffledQuestions = [];      
 
-// 1. Define the tracking variables
-let currentExamIdx = 0; 
-let examScore = 0;
-let shuffledQuestions = [];      
+    const meteorologyQuestions = [
+        {
+            q: "What is absolute humidity?",
+            a: "The amount of water vapor that a given quantity of air holds, expressed as mass per unit volume.",
+            o: [
+                "The ratio of existing water vapor to its saturation value at a given temperature.",
+                "The amount of water vapor that a given quantity of air holds, expressed as mass per unit volume.",
+                "The temperature to which air must be cooled at constant pressure to become fully saturated.",
+                "The mass of water vapor present per unit mass of totally dry air structure."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What is relative humidity?",
+            a: "The ratio of the existing absolute humidity to its saturation value at the same temperature. Calculated as the actual amount of water vapor in a sample of air divided by the maximum possible amount, multiplied by 100.",
+            o: [
+                "The exact mass of water vapor contained within a specific cubic meter of an air sample.",
+                "The ratio of the existing absolute humidity to its saturation value at the same temperature. Calculated as the actual amount of water vapor in a sample of air divided by the maximum possible amount, multiplied by 100.",
+                "The temperature threshold where water vapor begins condensing into visible liquid drops.",
+                "The pressure exerted solely by water vapor molecules within a volatile cyclonic system."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "How does relative humidity change throughout the day?",
+            a: "Relative humidity reduces during the day and increases at night.",
+            o: [
+                "Relative humidity increases during the day and reduces at night.",
+                "Relative humidity reduces during the day and increases at night.",
+                "Relative humidity remains constant while ambient barometric pressure fluctuates.",
+                "Relative humidity drops sharply at sunrise and peaks precisely at noon local time."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What is the dew point?",
+            a: "The temperature to which unsaturated air must be cooled at constant pressure and constant water vapor content to become saturated.",
+            o: [
+                "The point where evaporation and condensation reach equilibrium at fluctuating pressures.",
+                "The temperature drop per unit of altitude change under an adiabatic lapse rate profile.",
+                "The temperature to which unsaturated air must be cooled at constant pressure and constant water vapor content to become saturated.",
+                "The percentage value indicating how close a localized air mass is to releasing rain."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "How can the stability of the atmosphere be determined?",
+            a: "By the ambient temperature lapse rate. An increase of humidity and temperature indicates instability.",
+            o: [
+                "By reading the millibar drop on an uncorrected marine aneroid barometer.",
+                "By tracking the surface wind speed changes over a continuous 12-hour watch cycle.",
+                "By the ambient temperature lapse rate. An increase of humidity and temperature indicates instability.",
+                "By measuring the direct salinity variations across a sharp ocean current boundary."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What conditions lead to the formation of radiation fog?",
+            a: "Clear sky, calm wind, and high relative humidity, commonly occurring in autumn.",
+            o: [
+                "Warm, moist air blowing dynamically across an extremely cold sea surface layout.",
+                "A steep, unstable temperature lapse rate combined with strong gale force winds.",
+                "Clear sky, calm wind, and high relative humidity, commonly occurring in autumn.",
+                "A tight barometric pressure gradient accompanied by heavy nimbostratus cloud decks."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "When is advection fog formed?",
+            a: "When warm air passes over a colder surface, over both land and sea.",
+            o: [
+                "When warm air passes over a colder surface, over both land and sea.",
+                "When ground heat radiates into a clear sky overnight under totally calm wind profiles.",
+                "When a cold air mass undercuts a warm sector during an advanced occluding layout.",
+                "When sub-freezing air passes directly over high salinity tropical ocean currents."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "How is snow formed?",
+            a: "By the aggregation and joining together of ice crystals. Temperature is lower in winter with high humidity.",
+            o: [
+                "By rapid freezing of rain drops as they fall through a warm frontal thermal zone.",
+                "By condensation of water vapor directly onto microscopic high-altitude ash vectors.",
+                "By the aggregation and joining together of ice crystals. Temperature is lower in winter with high humidity.",
+                "By violent updrafts inside mature cumulonimbus clouds at temperatures near 0°C."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What wind speed is required for a cyclone to become a tropical depression?",
+            a: "Maximum sustained wind of 33 knots.",
+            o: [
+                "Maximum sustained wind of 15 knots.",
+                "Maximum sustained wind of 24 knots.",
+                "Maximum sustained wind of 33 knots.",
+                "Maximum sustained wind of 64 knots."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "How does the jet stream affect weather conditions around the world?",
+            a: "The jet stream pushes weather systems around the world, providing a fast and quick route at speeds up to 250 miles per hour.",
+            o: [
+                "The jet stream pushes weather systems around the world, providing a fast and quick route at speeds up to 250 miles per hour.",
+                "It generates localized katabatic wind flows along major coastal harbor entries.",
+                "It controls surface-level oceanic gyres and warm current boundaries like the Gulf Stream.",
+                "It directly alters the salinity profiles of precipitation systems over land masses."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What weather forecast is indicated by a dropping barometer and low cloud ceiling?",
+            a: "Stormy or wet weather is approaching.",
+            o: [
+                "Fair, dry, and sunny conditions are setting in.",
+                "Stormy or wet weather is approaching.",
+                "A fast transition into radiation fog during evening slack periods.",
+                "The rapid dissolution of a nearby maritime frontal boundary depression."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What does NSW mean in weather forecasting?",
+            a: "End of significant weather (Nil Significant Weather).",
+            o: [
+                "Northwesterly Storm Warning.",
+                "New Sea Wave conditions expected.",
+                "End of significant weather (Nil Significant Weather).",
+                "Navigational Safety Weather parameters active."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What is the surest sign of the proximity of a tropical storm?",
+            a: "A barometer reading falling 5mb or more.",
+            o: [
+                "A sudden shift from southwest to northeast wind patterns.",
+                "A sharp increase in visibility with scattered cirrus structures.",
+                "A barometer reading falling 5mb or more.",
+                "An immediate equalization of dry and wet bulb temperature data."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What feature do radiation fogs have in common?",
+            a: "They form under a slack pressure gradient with distinct outlines and a glow of light.",
+            o: [
+                "They carry high wind speeds that displace visibility bands across open ocean channels.",
+                "They form under a slack pressure gradient with distinct outlines and a glow of light.",
+                "They are associated with deep maritime depressions and low-hanging altocumulus layers.",
+                "They form strictly over high salinity ocean boundaries during spring tide periods."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "When do meteorological conditions likely produce sub-refraction?",
+            a: "When there is an increase of humidity and temperature.",
+            o: [
+                "When there is an increase of humidity and temperature.",
+                "When cold air passes directly over an exceptionally warm current field.",
+                "When a severe pressure drop occurs simultaneously with a cold front passage.",
+                "When thermal layers invert completely over shallow coastal sand deposits."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What conditions allow thunderstorms to develop?",
+            a: "A plentiful supply of moisture, a steep lapse rate, and a trigger action.",
+            o: [
+                "A high-pressure system, low relative humidity, and steady trade winds.",
+                "A plentiful supply of moisture, a steep lapse rate, and a trigger action.",
+                "A slack pressure gradient combined with freezing temperatures at sea level.",
+                "A horizontal advection flow of dry arctic air over tropical waters."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What is the maximum hazard zone in a thunderstorm?",
+            a: "On all sides directly under the thunderstorm, where wind shear is most severe.",
+            o: [
+                "On all sides directly under the thunderstorm, where wind shear is most severe.",
+                "Approximately 15 to 20 miles ahead of the upper anvil cloud projection.",
+                "Directly inside the cold sector boundary behind the rain line.",
+                "Along the high-pressure ridge line flanking the storm system edges."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What is the correct statement about reading a thunderstorm during its mature stage?",
+            a: "Moderate/severe turbulence and/or moderate/severe icing may be encountered.",
+            o: [
+                "Precipitation ceases entirely as pressure values climb slowly back to normal.",
+                "Moderate/severe turbulence and/or moderate/severe icing may be encountered.",
+                "Wind profiles align strictly into a steady, non-rotational advection field.",
+                "Cloud bases elevate rapidly above 20,000 feet, minimizing surface visibility limits."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What does a kinked isobar pointing away from the low indicate?",
+            a: "A warm front approaching with deteriorating rain and visibility.",
+            o: [
+                "A clearing weather pattern with rapidly dropping relative humidity profiles.",
+                "The formation of a localized radiation fog formation over nearby land.",
+                "An imminent shift to a southwest monsoon wind pattern within 12 hours.",
+                "A warm front approaching with deteriorating rain and visibility."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What does the corona of the sun and moon indicate?",
+            a: "A precursor of bad weather; clouds are getting heavy and can no longer hold water (precipitation is imminent).",
+            o: [
+                "A confirmation of sustained fair weather and atmospheric stability.",
+                "A precursor of bad weather; clouds are getting heavy and can no longer hold water (precipitation is imminent).",
+                "The exact geographic center alignment of an active tropical cyclonic vortex.",
+                "An operational sub-refraction anomaly affecting shipboard marine radar targets."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What are trade winds?",
+            a: "Winds blowing for days or even weeks with little change in direction.",
+            o: [
+                "Winds blowing for days or even weeks with little change in direction.",
+                "Localized wind patterns alternating between land and sea over a 12-hour cycle.",
+                "Violent upper-atmosphere jet routes traveling up to 250 miles per hour.",
+                "Cyclonic wind profiles that fluctuate based on lunar spring tide patterns."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "How does air move in a land breeze?",
+            a: "Air moves from land to the ocean.",
+            o: [
+                "Air moves from ocean to land.",
+                "Air moves from land to the ocean.",
+                "Air moves vertically into upper-level jet configurations.",
+                "Air moves parallel along the coastal current contours."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "How does air move in a sea breeze?",
+            a: "Air moves from ocean to land.",
+            o: [
+                "Air moves from ocean to land.",
+                "Air moves from land to the ocean.",
+                "Air descends rapidly due to night cooling over valleys.",
+                "Air moves purely away from low-pressure centers."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What is the summer monsoon wind system in the China Sea?",
+            a: "Southwest winds from May to September.",
+            o: [
+                "Northeast winds from November to April.",
+                "Southwest winds from May to September.",
+                "Sustained easterly trade winds active all year round.",
+                "Variable katabatic wind vectors from land masses."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "When sailing from Puerto Rico to New York with wind veering steadily, what does this indicate?",
+            a: "The vessel is in the dangerous semi-circle of a storm system.",
+            o: [
+                "The vessel is safely inside the navigable semi-circle parameters.",
+                "The storm system is completely dissipating ahead of the ship's track.",
+                "The vessel is in the dangerous semi-circle of a storm system.",
+                "A strong radiation fog is setting in due to temperature changes."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "How should a vessel navigate in the northern hemisphere when positioned in the hurricane's navigable semicircle?",
+            a: "With the wind on the starboard quarter, hold course and make as much speed as possible.",
+            o: [
+                "Bring the wind on the starboard bow and alter course to the right continually.",
+                "With the wind on the starboard quarter, hold course and make as much speed as possible.",
+                "Put the wind directly on the port beam and steer toward the eye to escape.",
+                "Stop engines completely and drift until the barometric pressure equalizes."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What happens at a warm front?",
+            a: "Warmer air ascends over colder air in a more or less uniform manner.",
+            o: [
+                "Cold air violently undercuts and displaces warmer air structures.",
+                "Warmer air ascends over colder air in a more or less uniform manner.",
+                "An immediate drop in relative humidity brings clear skies instantly.",
+                "Air masses merge seamlessly without producing cloud decks or rain fields."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What is a cold front?",
+            a: "A line of discontinuity where advancing cold air mass undercuts warmer air mass, with cold air underrunning and displacing warmer air.",
+            o: [
+                "A uniform boundary where warm air glides smoothly above a stationary cold pool.",
+                "A slack pressure zone associated entirely with early morning radiation fog profiles.",
+                "A line of discontinuity where advancing cold air mass undercuts warmer air mass, with cold air underrunning and displacing warmer air.",
+                "The warm boundary separating the Gulf Stream current from arctic water pools."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What is a cold sector?",
+            a: "The area of a depression occupied by cold air; comprises the whole depression after the occluding process.",
+            o: [
+                "The warm core directly inside the eye of a tropical depression framework.",
+                "The area of a depression occupied by cold air; comprises the whole depression after the occluding process.",
+                "The geography surrounding the Labrador Current where icebergs exist.",
+                "A localized zone where air temp drops below freezing for less than 12 hours."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What is a cold wall?",
+            a: "A sudden line of demarcation between the Gulf Stream and Labrador Current.",
+            o: [
+                "An advancing line of cumulus clouds indicating a violent squall line shift.",
+                "The geographic ice shelf bounding safe navigation limits in the Baltic Sea.",
+                "A sudden line of demarcation between the Gulf Stream and Labrador Current.",
+                "A localized high-pressure system blocking warm maritime advection vectors."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What is a cold wave?",
+            a: "A period of low temperatures below average that lasts for 24 hours or more.",
+            o: [
+                "A sub-surface current traveling faster than 3 knots toward the equator.",
+                "A period of low temperatures below average that lasts for 24 hours or more.",
+                "The shock wave generated by an underwater seismic disturbance near ice pack fields.",
+                "An accumulation of ice crystals inside a nimbostratus cloud setup."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What does a sling psychrometer measure?",
+            a: "Relative humidity and dew point.",
+            o: [
+                "Continuous changes in atmospheric barometric pressures over a week.",
+                "Relative humidity and dew point.",
+                "True wind velocity vector values alongside sea temperature metrics.",
+                "The altitude range profile of high-level cirrocumulus clouds."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What does a barograph do?",
+            a: "It maintains a continuous record of atmospheric pressure.",
+            o: [
+                "It maintains a continuous record of atmospheric pressure.",
+                "It measures the moisture content changes using a wet bulb setup.",
+                "It gauges wind velocity fluctuations at the bridge mast level.",
+                "It charts solar radiation changes across the rational horizon plane."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What does a dry bulb thermometer measure?",
+            a: "The temperature of the atmosphere.",
+            o: [
+                "The saturation point value of an air sample at constant pressures.",
+                "The temperature of the atmosphere.",
+                "The relative density profile of localized maritime fog layouts.",
+                "The ambient sea surface water temperature near the engine intake."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What is the use of a wet bulb thermometer?",
+            a: "It measures the temperature of the atmosphere when 100% saturated. Evaporation causes cooling, so the wet bulb temperature would normally be lower than the dry bulb temperature.",
+            o: [
+                "It tracks the deep sub-surface current water temperatures accurately.",
+                "It calculates absolute barometric pressure variations inside enclosed hulls.",
+                "It measures the temperature of the atmosphere when 100% saturated. Evaporation causes cooling, so the wet bulb temperature would normally be lower than the dry bulb temperature.",
+                "It measures the freezing threshold parameters within low cloud layers."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "How does an aneroid barometer operate?",
+            a: "It depends on a thin, metal, airtight cell that responds to pressure changes.",
+            o: [
+                "It utilizes a column of liquid mercury that fluctuates inside a glass tube.",
+                "It depends on a thin, metal, airtight cell that responds to pressure changes.",
+                "It measures the resistance variances inside an electrical wet-bulb node.",
+                "It gauges pressure by calculating the rotation velocity of an internal drum."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What corrections are applied to a mercurial barometer?",
+            a: "Corrections for latitude and height above sea level.",
+            o: [
+                "Corrections for total ship's speed and heading alignments.",
+                "Corrections for relative humidity fluctuations and wind direction values.",
+                "Corrections for latitude and height above sea level.",
+                "Corrections for magnetic deviation errors caused by the iron hull structure."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "Why may an iceberg travel in a direction many degrees different from sea ice?",
+            a: "Because the iceberg extends much deeper into the water, making it more affected by subsurface currents.",
+            o: [
+                "Because surface winds exert a stronger force on flat sea ice fields.",
+                "Because the iceberg extends much deeper into the water, making it more affected by subsurface currents.",
+                "Because high salinity zones repel icebergs while attracting sea ice sheets.",
+                "Because icebergs carry a localized permanent magnetic field orientation."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What is encountered when operating in an area where sea ice and iceberg are present with very cold air blowing over relatively warm sea?",
+            a: "Rotton ice and perpendicular ice formations that pose hazards to navigation.",
+            o: [
+                "Rotton ice and perpendicular ice formations that pose hazards to navigation.",
+                "Immediate formation of heavy radiation fog layers that clear at noon.",
+                "An equalization of surface salinity profiles that eases vessel steering response.",
+                "Rapid clearing of the cloud ceiling along with rising barometer records."
+            ],
+            cat: "METEOROLOGY"
+        },
+        {
+            q: "What should an ice-reinforced vessel do when about to enter pack ice?",
+            a: "Proceed with caution and at reduced speed to minimize ice impact damage.",
+            o: [
+                "Maintain full service speed to crack through the ice fields quickly.",
+                "Alter course to starboard continuously until the ice field goes abaft the beam.",
+                "Proceed with caution and at reduced speed to minimize ice impact damage.",
+                "Drop anchor immediately and wait for ambient air temperatures to increase."
+            ],
+            cat: "METEOROLOGY"
+        }
+    ];
 
-// 2. The Question Database
-const examQuestions = [
-    // --- NAVIGATION & GENERAL ---
-    { 
-        q: "What is the reference line for measuring Longitude?", 
-        a: "The Prime Meridian (Greenwich)", 
-        o: ["The Equator", "The Prime Meridian (Greenwich)", "International Date Line", "Tropic of Cancer"],
-        cat: "NAVIGATION"
-    },
-    { 
-        q: "A 'Small Circle' on the Earth's surface is any circle whose plane:", 
-        a: "Does not pass through the center of the Earth", 
-        o: ["Passes through the geographical poles", "Passes through the center of the Earth", "Does not pass through the center of the Earth", "Is parallel to the Prime Meridian"],
-        cat: "NAVIGATION"
-    },
-    { 
-        q: "In ECDIS, what color is used to represent 'Isolated Danger' symbols?", 
-        a: "Magenta", 
-        o: ["Black", "Magenta", "Red", "Blue"],
-        cat: "NAVIGATION"
-    },
-    { 
-        q: "To convert a Compass Course to a True Course, you must apply:", 
-        a: "Variation and Deviation", 
-        o: ["Variation and Deviation", "Deviation only", "Drift and Leeway", "Magnetic Dip"],
-        cat: "NAVIGATION"
-    },
-    { 
-        q: "Which publication contains information on light characteristics and fog signals?", 
-        a: "List of Lights", 
-        o: ["Notice to Mariners", "Sailing Directions", "List of Lights", "Tide Tables"],
-        cat: "NAVIGATION"
-    },
-    { 
-        q: "What is the frequency of GPS L1 signals?", 
-        a: "1575.42 MHz", 
-        o: ["1227.60 MHz", "1575.42 MHz", "1090.00 MHz", "2182.00 KHz"],
-        cat: "NAVIGATION"
-    },
-    { 
-        q: "What is the meaning of a 'Simple' fix in navigation?", 
-        a: "The intersection of two or more position lines (LOPs) taken at the same time", 
-        o: ["A position based on Dead Reckoning", "A single bearing from a lighthouse", "The intersection of two or more position lines (LOPs) taken at the same time", "A position obtained by celestial observation only"],
-        cat: "NAVIGATION"
-    },
-    { 
-        q: "The distance between the sun and the earth is greatest at:", 
-        a: "Aphelion", 
-        o: ["Perihelion", "Aphelion", "Vernal Equinox", "Winter Solstice"],
-        cat: "NAVIGATION"
-    },
-    { 
-        q: "Which radar control is used to suppress clutter from rain or snow?", 
-        a: "FTC (Fast Time Constant)", 
-        o: ["Gain", "STC (Sensitivity Time Control)", "FTC (Fast Time Constant)", "Brilliance"],
-        cat: "NAVIGATION"
-    },
-    { 
-        q: "A vessel's position obtained by taking a bearing and a range from a single object is a:", 
-        a: "Running Fix", 
-        o: ["Estimated Position", "Running Fix", "Dead Reckoning Position", "Celestial Fix"],
-        cat: "NAVIGATION"
-    },
-
-    // --- COLREGs ---
-    { 
-        q: "Under Rule 5, every vessel must maintain a proper look-out by:", 
-        a: "Sight and hearing as well as by all available means appropriate", 
-        o: ["Sight and hearing as well as by all available means appropriate", "Radar and Binoculars only", "VHF radio monitoring", "Posting a person on the forecastle only"],
-        cat: "COLREGs"
-    },
-    { 
-        q: "What is the day shape for a vessel 'Not Under Command'?", 
-        a: "Two black balls in a vertical line", 
-        o: ["A black diamond", "Two black balls in a vertical line", "Three black balls in a vertical line", "A cylinder"],
-        cat: "COLREGs"
-    },
-    { 
-        q: "In a crossing situation, which vessel is the 'Give-way' vessel?", 
-        a: "The vessel which has the other on her own starboard side", 
-        o: ["The vessel which has the other on her own port side", "The larger vessel", "The vessel which has the other on her own starboard side", "The faster vessel"],
-        cat: "COLREGs"
-    },
-    { 
-        q: "Rule 6 (Safe Speed) applies to vessels in:", 
-        a: "All conditions of visibility", 
-        o: ["Restricted visibility only", "Clear visibility only", "All conditions of visibility", "Narrow channels only"],
-        cat: "COLREGs"
-    },
-    { 
-        q: "A power-driven vessel 'underway but stopped and making no way' through the water shall exhibit:", 
-        a: "The same lights as a vessel making way", 
-        o: ["Two all-round red lights", "A single white light", "The same lights as a vessel making way", "No lights at all"],
-        cat: "COLREGs"
-    },
-    { 
-        q: "What is the fog signal for a vessel constrained by her draft?", 
-        a: "One prolonged blast followed by two short blasts every 2 minutes", 
-        o: ["One prolonged blast every 2 minutes", "Two prolonged blasts every 2 minutes", "One prolonged blast followed by two short blasts every 2 minutes", "Four short blasts"],
-        cat: "COLREGs"
-    },
-    { 
-        q: "A 'Short Blast' has a duration of approximately:", 
-        a: "One second", 
-        o: ["One second", "Two seconds", "Four to six seconds", "Half a second"],
-        cat: "COLREGs"
-    },
-    { 
-        q: "Which rule defines the 'Responsibility between Vessels' (Hierarchy)?", 
-        a: "Rule 18", 
-        o: ["Rule 10", "Rule 18", "Rule 14", "Rule 19"],
-        cat: "COLREGs"
-    },
-    { 
-        q: "In a narrow channel, a vessel of less than 20 meters shall not:", 
-        a: "Impede the passage of a vessel which can safely navigate only within such channel", 
-        o: ["Anchor at all", "Use whistle signals", "Impede the passage of a vessel which can safely navigate only within such channel", "Exceed 5 knots"],
-        cat: "COLREGs"
-    },
-    { 
-        q: "What lights must a vessel 'Restricted in her ability to maneuver' show at night?", 
-        a: "Red-White-Red in a vertical line", 
-        o: ["Red over Red", "Green over White", "Red-White-Red in a vertical line", "Three White lights in a line"],
-        cat: "COLREGs"
-    },
-
-    // --- CARGO HANDLING ---
-    { 
-        q: "What is the definition of 'Stowage Factor'?", 
-        a: "The volume occupied by one unit of weight of cargo", 
-        o: ["The weight of cargo per square meter", "The volume occupied by one unit of weight of cargo", "The percentage of empty space in a hold", "The total capacity of a cargo hold"],
-        cat: "CARGO"
-    },
-    { 
-        q: "The vertical distance between the Keel and the Center of Buoyancy is:", 
-        a: "KB", 
-        o: ["KG", "KM", "KB", "GM"],
-        cat: "CARGO"
-    },
-    { 
-        q: "A 'Stiff Ship' is characterized by:", 
-        a: "A very large GM and a short, jerky rolling period", 
-        o: ["A small GM and a slow, easy roll", "A neutral GM", "A very large GM and a short, jerky rolling period", "A negative GM"],
-        cat: "CARGO"
-    },
-    { 
-        q: "Which cargo document provides information on the hazardous properties of chemicals?", 
-        a: "MSDS (Material Safety Data Sheet)", 
-        o: ["Cargo Manifest", "Bill of Lading", "MSDS (Material Safety Data Sheet)", "Mate's Receipt"],
-        cat: "CARGO"
-    },
-    { 
-        q: "'Broken Stowage' refers to:", 
-        a: "The empty spaces between packages or space lost due to dunnage", 
-        o: ["Damaged cargo packages", "The empty spaces between packages or space lost due to dunnage", "The weight of the dunnage used", "Cargo that has shifted during transit"],
-        cat: "CARGO"
-    },
-    { 
-        q: "The angle of list is caused by:", 
-        a: "An off-center distribution of weight", 
-        o: ["External forces like wind", "The ship's forward motion", "An off-center distribution of weight", "The density of sea water"],
-        cat: "CARGO"
-    },
-    { 
-        q: "What is the purpose of 'Dunnage'?", 
-        a: "To protect cargo from moisture and ensure ventilation", 
-        o: ["To increase the ship's stability", "To protect cargo from moisture and ensure ventilation", "To secure the vessel at the pier", "To calculate the cargo weight"],
-        cat: "CARGO"
-    },
-    { 
-        q: "What does the 'Ullage' of a tank represent?", 
-        a: "The distance from the top of the tank to the surface of the liquid", 
-        o: ["The depth of the liquid in the tank", "The total weight of the liquid", "The distance from the top of the tank to the surface of the liquid", "The pressure inside the tank"],
-        cat: "CARGO"
-    },
-
-    // --- SAFETY & MARPOL ---
-    { 
-        q: "Under MARPOL Annex I, what is the maximum oil content for discharge from machinery spaces?", 
-        a: "15 parts per million (ppm)", 
-        o: ["100 ppm", "50 ppm", "15 parts per million (ppm)", "0 ppm"],
-        cat: "SAFETY"
-    },
-    { 
-        q: "How many lifebuoys are required on a cargo ship between 100m and 150m in length?", 
-        a: "At least 10", 
-        o: ["At least 8", "At least 10", "At least 12", "At least 14"],
-        cat: "SAFETY"
-    },
-    { 
-        q: "What is the signal for a 'General Emergency' on the ship's whistle?", 
-        a: "Seven short blasts followed by one prolonged blast", 
-        o: ["Three long blasts", "Continuous ringing of the bell", "Seven short blasts followed by one prolonged blast", "One prolonged blast followed by seven short blasts"],
-        cat: "SAFETY"
-    },
-    { 
-        q: "Which MARPOL Annex regulates the prevention of pollution by Sewage?", 
-        a: "Annex IV", 
-        o: ["Annex I", "Annex II", "Annex IV", "Annex VI"],
-        cat: "SAFETY"
-    },
-    { 
-        q: "The 'Short-term' effect of Free Surface is:", 
-        a: "A reduction in the effective Metacentric Height (GM)", 
-        o: ["An increase in buoyancy", "A reduction in the effective Metacentric Height (GM)", "A change in the vessel's trim", "A permanent angle of loll"],
-        cat: "SAFETY"
-    },
-    { 
-        q: "A Fire Control Plan must be permanently stowed in:", 
-        a: "A prominently marked weather-tight enclosure outside the deckhouse", 
-        o: ["The Bridge only", "The Engine Room", "A prominently marked weather-tight enclosure outside the deckhouse", "The Captain's cabin"],
-        cat: "SAFETY"
-    },
-    { 
-        q: "The 'SOPEP' manual is required for tankers of:", 
-        a: "150 gross tonnage and above", 
-        o: ["300 gross tonnage and above", "400 gross tonnage and above", "150 gross tonnage and above", "All vessels regardless of size"],
-        cat: "SAFETY"
-    },
-    { 
-        q: "In the event of a 'Man Overboard,' which maneuver returns the ship to the original track in the shortest time?", 
-        a: "The Anderson Turn (Single Turn)", 
-        o: ["The Williamson Turn", "The Anderson Turn (Single Turn)", "The Scharnow Turn", "Full Astern"],
-        cat: "SAFETY"
-    },
-{ 
-    q: "A Class 'B' fire is most effectively extinguished by which of the following?", 
-    a: "Smothering", 
-    o: ["Cooling", "Smothering", "Removing Fuel", "Inhibition"],
-    cat: "SAFETY"
-},
-{ 
-    q: "What is the minimum number of lifebuoys required for a vessel of 200m or more in length?", 
-    a: "14", 
-    o: ["8", "10", "12", "14"],
-    cat: "SAFETY"
-},
-{ 
-    q: "Under COLREG Rule 13, a vessel is 'overtaking' when coming up from a direction more than how many degrees abaft her beam?", 
-    a: "22.5 degrees", 
-    o: ["11.25 degrees", "22.5 degrees", "45 degrees", "67.5 degrees"],
-    cat: "COLREGs"
-},
-{ 
-    q: "The 'Daily Test' of GMDSS equipment must include:", 
-    a: "VHF DSC internal test without radiation of a signal", 
-    o: ["Testing the EPIRB", "VHF DSC internal test without radiation of a signal", "Testing the SART", "Sending a test call to a Coast Station"],
-    cat: "GMDSS"
-},
-{ 
-    q: "How many hours before departure must the steering gear be tested as per SOLAS?", 
-    a: "12 hours", 
-    o: ["1 hour", "6 hours", "12 hours", "24 hours"],
-    cat: "WATCHKEEPING"
-},
-{ 
-    q: "The 'Oil Record Book Part I' (Machinery Space) is required for every ship of:", 
-    a: "400 gross tonnage and above", 
-    o: ["150 gross tonnage and above", "400 gross tonnage and above", "500 gross tonnage and above", "1000 gross tonnage and above"],
-    cat: "MARPOL"
-},
-{ 
-    q: "Which light is required for a vessel 'Aground' at night?", 
-    a: "Two all-round red lights in a vertical line and anchor lights", 
-    o: ["Three all-round red lights", "Two all-round red lights in a vertical line and anchor lights", "One all-round red light", "One white light only"],
-    cat: "COLREGs"
-},
-{ 
-    q: "What is the standard 'Service Life' of a Life Raft Hydrostatic Release Unit (HRU)?", 
-    a: "2 years", 
-    o: ["1 year", "2 years", "3 years", "5 years"],
-    cat: "SAFETY"
-},
-{ 
-    q: "In an ECDIS system, what does 'SCAMIN' stand for?", 
-    a: "Scale Minimum", 
-    o: ["Safety Configuration", "Scale Minimum", "Scan Interval", "Sector Map Input"],
-    cat: "NAVIGATION"
-},
-{ 
-    q: "Which flag should be flown when a vessel is in 'Quarantine' and requesting free pratique?", 
-    a: "Lima", 
-    o: ["Alpha", "Hotel", "Lima", "Quebec"],
-    cat: "COMMUNICATIONS"
-},
-{ 
-    q: "The 3rd Officer is inspecting lifejackets. What is the required length of the whistle cord?", 
-    a: "Long enough to reach the wearer's mouth", 
-    o: ["10 cm", "20 cm", "Long enough to reach the wearer's mouth", "No specific length"],
-    cat: "SAFETY"
-},
-{ 
-    q: "What is the purpose of a 'SART' (Search and Rescue Transponder)?", 
-    a: "To locate a survival craft by creating dots on a 3cm (X-band) radar", 
-    o: ["To transmit a voice distress", "To locate a survival craft by creating dots on a 3cm (X-band) radar", "To indicate the ship's AIS position", "To measure the depth of the water"],
-    cat: "GMDSS"
-},
-{ 
-    q: "When a vessel is 'NUC' (Not Under Command) and making way, she must show:", 
-    a: "Two all-round red lights, sidelights, and a sternlight", 
-    o: ["Two all-round red lights only", "Two all-round red lights, sidelights, and a sternlight", "Three all-round red lights", "One all-round red light"],
-    cat: "COLREGs"
-},
-{ 
-    q: "The distance between the waterline and the deck edge is called:", 
-    a: "Freeboard", 
-    o: ["Draft", "Freeboard", "Air Draft", "Under-deck tonnage"],
-    cat: "CARGO"
-},
-{ 
-    q: "A fire signal of 'Continuous Ringing of the Bell' usually indicates:", 
-    a: "Fire Alarm / Fire on board", 
-    o: ["Abandon Ship", "Man Overboard", "Fire Alarm / Fire on board", "Engine Failure"],
-    cat: "SAFETY"
-},
-{ 
-    q: "What is the maximum distance between the 'Safe Water' mark and the start of a channel?", 
-    a: "There is no fixed distance", 
-    o: ["1 mile", "2 miles", "5 miles", "There is no fixed distance"],
-    cat: "NAVIGATION"
-},
-{ 
-    q: "Which publication provides instructions on how to treat medical emergencies at sea?", 
-    a: "MFAG (Medical First Aid Guide)", 
-    o: ["IMDG Code", "MFAG (Medical First Aid Guide)", "P&A Manual", "Safety Management System"],
-    cat: "SAFETY"
-},
-{ 
-    q: "The error caused by the ship's magnetic field on the compass is called:", 
-    a: "Deviation", 
-    o: ["Variation", "Deviation", "Drift", "Local Attraction"],
-    cat: "NAVIGATION"
-},
-{ 
-    q: "According to Rule 34, a vessel in sight of another and intending to overtake on her starboard side in a narrow channel shall sound:", 
-    a: "Two prolonged blasts followed by one short blast", 
-    o: ["One short blast", "Two short blasts", "Two prolonged blasts followed by one short blast", "One prolonged blast"],
-    cat: "COLREGs"
-},
-{ 
-    q: "What is the frequency of the 'SART' signal?", 
-    a: "9 GHz", 
-    o: ["156.8 MHz", "121.5 MHz", "9 GHz", "2182 KHz"],
-    cat: "GMDSS"
-},
-{ 
-    q: "How many SARTs are required on a cargo ship of 500 GT or more?", 
-    a: "Two", 
-    o: ["One", "Two", "Three", "Four"],
-    cat: "SAFETY"
-},
-{ 
-    q: "Which part of the sextant is used to view both the horizon and the celestial body?", 
-    a: "Telescope", 
-    o: ["Index Mirror", "Horizon Glass", "Telescope", "Micrometer Drum"],
-    cat: "NAVIGATION"
-},
-{ 
-    q: "MARPOL Annex VI regulates what type of pollution?", 
-    a: "Air Pollution", 
-    o: ["Oil Pollution", "Sewage Pollution", "Garbage Pollution", "Air Pollution"],
-    cat: "MARPOL"
-},
-{ 
-    q: "What is the day shape for a vessel 'Constrained by her Draft'?", 
-    a: "A Cylinder", 
-    o: ["A Cone", "A Cylinder", "A Diamond", "A Ball"],
-    cat: "COLREGs"
-},
-{ 
-    q: "Which sensor is used to measure the vessel's speed 'Through the water'?", 
-    a: "Doppler Log", 
-    o: ["GPS", "Doppler Log", "Anemometer", "Echo Sounder"],
-    cat: "NAVIGATION"
-},
-{ 
-    q: "What is the meaning of the signal 'Three Short Blasts'?", 
-    a: "I am operating astern propulsion", 
-    o: ["I am altering course to port", "I am altering course to starboard", "I am operating astern propulsion", "I am in distress"],
-    cat: "COLREGs"
-},
-{ 
-    q: "Which MARPOL Annex applies to 'Harmful Substances Carried by Sea in Packaged Form'?", 
-    a: "Annex III", 
-    o: ["Annex I", "Annex II", "Annex III", "Annex IV"],
-    cat: "MARPOL"
-},
-{ 
-    q: "The 'Height of Tide' is measured from which reference line?", 
-    a: "Chart Datum", 
-    o: ["Mean Sea Level", "Chart Datum", "Lowest Astronomical Tide", "High Water Mark"],
-    cat: "NAVIGATION"
-},
-{ 
-    q: "A fire involving 'Energized Electrical Equipment' is considered:", 
-    a: "Class C (E in some regions)", 
-    o: ["Class A", "Class B", "Class C (E in some regions)", "Class D"],
-    cat: "SAFETY"
-},
-{ 
-    q: "In the buoyage system Region A, what is the color of a 'Starboard Hand' buoy?", 
-    a: "Green", 
-    o: ["Red", "Green", "Yellow", "Black and Yellow"],
-    cat: "NAVIGATION"
-}
-];
-
-function shuffleExam() {
-    shuffledQuestions = [...examQuestions]; 
-    for (let i = shuffledQuestions.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffledQuestions[i], shuffledQuestions[j]] = [shuffledQuestions[j], shuffledQuestions[i]];
+    // --- FIXED SHUFFLE COMPONENT LINK ---
+    function shuffleExam() {
+        shuffledQuestions = [...meteorologyQuestions]; // Fixed referencing variable bug here!
+        for (let i = shuffledQuestions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledQuestions[i], shuffledQuestions[j]] = [shuffledQuestions[j], shuffledQuestions[i]];
+        }
     }
-}
 
-// 3. The Function to Load Questions
-function loadExam() {
-    if (currentExamIdx === 0) shuffleExam();
+    function loadExam() {
+        if (currentExamIdx === 0) shuffleExam();
 
-    const q = shuffledQuestions[currentExamIdx];
-    
-    // UPDATE THE CATEGORY DISPLAY
-    document.getElementById('e-category').innerText = q.cat || "GENERAL";
-    
-    document.getElementById('e-count').innerText = `${currentExamIdx + 1} / ${shuffledQuestions.length}`;
-    document.getElementById('e-question').innerText = q.q;
-    document.getElementById('e-score').innerText = examScore;
-    
-    const optionsBox = document.getElementById('e-options');
-    optionsBox.innerHTML = ""; 
-
-    // --- ADDED THIS PART: Create and Shuffle the options list ---
-    let shuffledOptions = [...q.o]; 
-    for (let i = shuffledOptions.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
-    }
-    
-    // Now use the shuffledOptions list to create buttons
-    shuffledOptions.forEach(o => {
-        const btn = document.createElement('button');
-        btn.className = "option-btn";
-        btn.innerText = o;
+        const q = shuffledQuestions[currentExamIdx];
         
-        btn.onclick = () => {
-            const allBtns = optionsBox.querySelectorAll('button');
-            allBtns.forEach(b => b.style.pointerEvents = 'none');
+        document.getElementById('e-category').innerText = q.cat || "GENERAL";
+        document.getElementById('e-count').innerText = `${currentExamIdx + 1} / ${shuffledQuestions.length}`;
+        document.getElementById('e-question').innerText = q.q;
+        document.getElementById('e-score').innerText = examScore;
+        
+        const optionsBox = document.getElementById('e-options');
+        optionsBox.innerHTML = ""; 
 
-            if(o === q.a) {
-                btn.classList.add('correct');
-                examScore++;
-                document.getElementById('e-score').innerText = examScore;
-                msg('e-msg', "Correct!", "#4ee44e");
-            } else {
-                btn.classList.add('wrong');
-                msg('e-msg', `Wrong! The correct answer was: ${q.a}`, "#ff4d4d");
-            }
+        let shuffledOptions = [...q.o]; 
+        for (let i = shuffledOptions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
+        }
+        
+        shuffledOptions.forEach(o => {
+            const btn = document.createElement('button');
+            btn.className = "option-btn";
+            btn.innerText = o;
             
-            setTimeout(() => {
-                currentExamIdx++;
-                if (currentExamIdx >= shuffledQuestions.length) {
-                    alert(`Set Finished! Final Score: ${examScore} / ${shuffledQuestions.length}`);
-                    currentExamIdx = 0;
-                    examScore = 0; 
+            btn.onclick = () => {
+                const allBtns = optionsBox.querySelectorAll('button');
+                allBtns.forEach(b => b.style.pointerEvents = 'none');
+
+                if(o === q.a) {
+                    btn.classList.add('correct');
+                    examScore++;
+                    document.getElementById('e-score').innerText = examScore;
+                    msg('e-msg', "Correct!", "#4ee44e");
+                } else {
+                    btn.classList.add('wrong');
+                    msg('e-msg', `Wrong! The correct answer was: ${q.a}`, "#ff4d4d");
                 }
-                loadExam();
-            }, 1500); 
-        };
-        optionsBox.appendChild(btn);
+                
+                setTimeout(() => {
+                    currentExamIdx++;
+                    if (currentExamIdx >= shuffledQuestions.length) {
+                        alert(`Set Finished! Final Score: ${examScore} / ${shuffledQuestions.length}`);
+                        currentExamIdx = 0;
+                        examScore = 0; 
+                    }
+                    loadExam();
+                }, 1500); 
+            };
+            optionsBox.appendChild(btn);
+        });
+    }
+
+    // --- ENTER KEY LISTENERS ---
+    document.getElementById('compassInput').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            checkCompass();
+        }
     });
-}
-// Global Message helper
-function msg(id, t, c) { 
-    const el = document.getElementById(id); 
-    el.innerText = t; 
-    el.style.color = c; 
-    setTimeout(() => el.innerText = "", 1000); 
-}
 
-// Initialize the first view
-loadFire();
+    document.getElementById('fireInput').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            checkFire();
+        }
+    });
 
-    function msg(id, t, c) { const el = document.getElementById(id); el.innerText = t; el.style.color = c; setTimeout(()=>el.innerText="", 1000); }
+    // Global Message helper
+    function msg(id, t, c) { 
+        const el = document.getElementById(id); 
+        el.innerText = t; 
+        el.style.color = c; 
+        setTimeout(() => el.innerText = "", 1000); 
+    }
 
+    // Initialize default starter view
     loadFire();
 </script>
 </body>
